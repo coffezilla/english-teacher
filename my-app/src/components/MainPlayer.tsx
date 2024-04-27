@@ -22,6 +22,10 @@ const MainPlayer = () => {
     }
   };
 
+  const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.target.select();
+  };
+
   const handleLetter = (
     e: React.ChangeEvent<HTMLInputElement>,
     position: number
@@ -29,18 +33,19 @@ const MainPlayer = () => {
     e.preventDefault();
     const currentLetter: string = e.target.value[e.target.value.length - 1];
     const currentAnswer = answerWord;
-    currentAnswer[position] = currentLetter;
-    setAnswerWord(() => [...currentAnswer]);
+    if (currentAnswer) {
+      currentAnswer[position] = currentLetter;
+      setAnswerWord(() => [...currentAnswer]);
 
-    const nextLetter =
-      position < currentAnswer.length - 1
-        ? position + 1
-        : currentAnswer.length - 1;
+      const nextLetter =
+        position < currentAnswer.length - 1
+          ? position + 1
+          : currentAnswer.length - 1;
 
-    checkResult();
-
-    // go to the next letter
-    document.querySelector(`#input_${nextLetter}`)?.select();
+      // go to the next letter
+      document.querySelector(`#input_${nextLetter}`)?.select();
+      checkResult();
+    }
   };
 
   useEffect(() => {
@@ -97,9 +102,10 @@ const MainPlayer = () => {
                         id={`input_${i}`}
                         type="text"
                         className="border-b bg-red-200 text-lg h-7 w-7 text-center"
-                        maxLength={2}
+                        maxLength={1}
                         value={answerWord[i]}
                         onChange={(e) => handleLetter(e, i)}
+                        onClick={(e) => handleSelect(e)}
                         // onFocus={(e) => e.current.select()}
                       />
                     </li>
