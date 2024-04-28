@@ -165,7 +165,7 @@ const MainPlayer = () => {
             )}
             {!isCorrect && (
               <div className="border w-full px-2 py-2">
-                <ul className="grid gap-2 grid-cols-8  ">
+                <ul className="grid gap-2 grid-cols-8 sm:grid-cols-12 md:flex md:flex-wrap  ">
                   {questionWord.english?.map((letter, i) => {
                     return (
                       <li className="" key={letter}>
