@@ -168,7 +168,7 @@ const MainPlayer = () => {
                 <ul className="grid gap-2 grid-cols-8 sm:grid-cols-12 md:flex md:flex-wrap  ">
                   {questionWord.english?.map((letter, i) => {
                     return (
-                      <li className="" key={letter}>
+                      <li className="" key={`${letter}${i}`}>
                         <input
                           id={`input_${i}`}
                           type="text"
