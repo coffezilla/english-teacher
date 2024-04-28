@@ -12,17 +12,63 @@ interface ISUserWord {
 const MainPlayer = () => {
   const [questionWord, setQuestionWord] = useState<ISUserWord | null>(null);
   const [answerWord, setAnswerWord] = useState<string[] | null>(null);
+  const [currentLetterSpace, setCurrentLetterSpace] = useState<number>(0);
 
   const checkResult = () => {
     const isCorrect = _.isEqual(questionWord?.english, answerWord);
-    // console.log("original: ", questionWord?.english);
-    // console.log("usuario: ", answerWord);
     if (isCorrect) {
       alert("ACERTOU!");
     }
   };
 
-  const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleKeyUp = (e: any) => {
+    let nextLetter = 0;
+
+    const keyCode = e.keyCode || e.which;
+    const key = String.fromCharCode(keyCode);
+
+    // Check if the key is alphabetic, backspace, or delete
+    if (
+      (key >= "a" && key <= "z") ||
+      (key >= "A" && key <= "Z") ||
+      keyCode === 8 /* Backspace */ ||
+      keyCode === 46 /* Delete */
+    ) {
+      if (keyCode === 8 || keyCode === 46) {
+        nextLetter = currentLetterSpace > 0 ? currentLetterSpace - 1 : 0;
+      } else {
+        nextLetter =
+          currentLetterSpace < questionWord.english.length - 1
+            ? currentLetterSpace + 1
+            : questionWord.english.length - 1;
+      }
+      document.querySelector(`#input_${nextLetter}`)?.select();
+      setCurrentLetterSpace(nextLetter);
+    }
+
+    // go left
+    if (keyCode === 37) {
+      nextLetter = currentLetterSpace > 0 ? currentLetterSpace - 1 : 0;
+      document.querySelector(`#input_${nextLetter}`)?.select();
+      setCurrentLetterSpace(nextLetter);
+    }
+
+    // go right
+    if (keyCode === 39) {
+      nextLetter =
+        currentLetterSpace < questionWord.english.length - 1
+          ? currentLetterSpace + 1
+          : questionWord.english.length - 1;
+      document.querySelector(`#input_${nextLetter}`)?.select();
+      setCurrentLetterSpace(nextLetter);
+    }
+  };
+
+  const handleSelect = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    position: number
+  ) => {
+    setCurrentLetterSpace(position);
     e.target.select();
   };
 
@@ -37,13 +83,8 @@ const MainPlayer = () => {
       currentAnswer[position] = currentLetter;
       setAnswerWord(() => [...currentAnswer]);
 
-      const nextLetter =
-        position < currentAnswer.length - 1
-          ? position + 1
-          : currentAnswer.length - 1;
+      setCurrentLetterSpace(position);
 
-      // go to the next letter
-      document.querySelector(`#input_${nextLetter}`)?.select();
       checkResult();
     }
   };
@@ -73,6 +114,7 @@ const MainPlayer = () => {
     <>
       <div>
         <h1>English Teacher</h1>
+        <div>position: {currentLetterSpace}</div>
         {questionWord && answerWord && (
           <>
             <div className="border">
@@ -105,7 +147,9 @@ const MainPlayer = () => {
                         maxLength={1}
                         value={answerWord[i]}
                         onChange={(e) => handleLetter(e, i)}
-                        onClick={(e) => handleSelect(e)}
+                        onClick={(e) => handleSelect(e, i)}
+                        onKeyUp={(e) => handleKeyUp(e)}
+                        // onKeyDown={(e) => handleKeyUp(e)}
                         // onFocus={(e) => e.current.select()}
                       />
                     </li>
