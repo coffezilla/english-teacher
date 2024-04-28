@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { separatorOfStrings } from "../helpers/utils";
+import { getRandomWord } from "../helpers/questions";
 import _ from "lodash";
 
 interface ISUserWord {
@@ -13,44 +14,39 @@ const MainPlayer = () => {
   const [questionWord, setQuestionWord] = useState<ISUserWord | null>(null);
   const [answerWord, setAnswerWord] = useState<string[] | null>(null);
   const [currentLetterSpace, setCurrentLetterSpace] = useState<number>(0);
+  const [isCorrect, setIsCorrect] = useState<boolean>(false);
+
+  const [audioLoaded, setAudioLoaded] = useState<any>(false);
 
   const checkResult = () => {
     const isCorrect = _.isEqual(questionWord?.english, answerWord);
     if (isCorrect) {
-      alert("ACERTOU!");
+      setIsCorrect(true);
     }
+  };
+
+  const handleAudioLoad = () => {
+    console.log("Audio loaded");
+    setAudioLoaded(true);
   };
 
   const handleKeyUp = (e: any) => {
     let nextLetter = 0;
 
     const keyCode = e.keyCode || e.which;
-    const key = String.fromCharCode(keyCode);
 
-    // Check if the key is alphabetic, backspace, or delete
-    if (
-      (key >= "a" && key <= "z") ||
-      (key >= "A" && key <= "Z") ||
-      keyCode === 8 /* Backspace */ ||
-      keyCode === 46 /* Delete */
-    ) {
-      if (keyCode === 8 || keyCode === 46) {
-        nextLetter = currentLetterSpace > 0 ? currentLetterSpace - 1 : 0;
-      } else {
-        nextLetter =
-          currentLetterSpace < questionWord.english.length - 1
-            ? currentLetterSpace + 1
-            : questionWord.english.length - 1;
-      }
-      document.querySelector(`#input_${nextLetter}`)?.select();
-      setCurrentLetterSpace(nextLetter);
+    if (keyCode === 8 || keyCode === 46) {
+      nextLetter = currentLetterSpace > 0 ? currentLetterSpace - 1 : 0;
+    } else {
+      nextLetter =
+        currentLetterSpace < questionWord.english.length - 1
+          ? currentLetterSpace + 1
+          : questionWord.english.length - 1;
     }
 
     // go left
     if (keyCode === 37) {
       nextLetter = currentLetterSpace > 0 ? currentLetterSpace - 1 : 0;
-      document.querySelector(`#input_${nextLetter}`)?.select();
-      setCurrentLetterSpace(nextLetter);
     }
 
     // go right
@@ -59,9 +55,14 @@ const MainPlayer = () => {
         currentLetterSpace < questionWord.english.length - 1
           ? currentLetterSpace + 1
           : questionWord.english.length - 1;
-      document.querySelector(`#input_${nextLetter}`)?.select();
-      setCurrentLetterSpace(nextLetter);
     }
+
+    const elementClick = document.querySelector(`#input_${nextLetter}`);
+    elementClick.focus();
+    elementClick.setSelectionRange(0, elementClick.value.length);
+    elementClick.click();
+
+    setCurrentLetterSpace(nextLetter);
   };
 
   const handleSelect = (
@@ -82,80 +83,113 @@ const MainPlayer = () => {
     if (currentAnswer) {
       currentAnswer[position] = currentLetter;
       setAnswerWord(() => [...currentAnswer]);
-
-      setCurrentLetterSpace(position);
-
       checkResult();
     }
   };
 
-  useEffect(() => {
-    const english = "home";
-    const portuguese = "casa";
-    const audio = "cat.mp3";
-    const question = "Seu lar";
-    const wordStripped = separatorOfStrings(english);
+  const nextQuestion = () => {
+    setQuestionWord(() => null);
+    setAnswerWord(() => null);
+    setCurrentLetterSpace(() => 0);
+    setIsCorrect(() => false);
+    setAudioLoaded(() => false);
+    getNextWord().then((response) => {
+      const wordStripped = separatorOfStrings(response.english);
+      setQuestionWord({
+        english: wordStripped,
+        portuguese: response.portuguese,
+        audio: response.audio,
+        question: response.question,
+      });
 
-    setQuestionWord({
-      english: wordStripped,
-      portuguese: portuguese,
-      audio: audio,
-      question: question,
+      const answersInputs = Array(response.english.length).fill("");
+      setAnswerWord(answersInputs);
+      setTimeout(() => {
+        const elementClick = document.querySelector(`#input_0`);
+        setTimeout(() => {
+          elementClick?.focus();
+          elementClick?.click();
+        }, 1000);
+      }, 500);
     });
+  };
 
-    const answersInputs = Array(english.length);
-    // const answersInputs = wordStripped;
-    setAnswerWord(answersInputs);
+  const getNextWord = async () => {
+    return await getRandomWord();
+  };
 
-    console.log("size", answersInputs);
+  useEffect(() => {
+    nextQuestion();
   }, []);
 
   return (
     <>
-      <div>
+      <div className="px-5 py-2 space-y-5">
         <h1>English Teacher</h1>
-        <div>position: {currentLetterSpace}</div>
+        {/* <div>position: {currentLetterSpace}</div> */}
         {questionWord && answerWord && (
           <>
-            <div className="border">
-              <h2>Pergunta</h2>
+            <div className="border w-full px-2 py-2">
+              <h2 className="text-lg font-bold">Pergunta</h2>
               <p>{questionWord.question}</p>
             </div>
-            <div className="border">
-              <h2>Tradução</h2>
+            <div className="border w-full px-2 py-2">
+              <h2 className="text-lg font-bold">Tradução</h2>
               <p>{questionWord.portuguese}</p>
             </div>
-            <div className="border">
-              <h2>Áudio</h2>
-              <audio src={`/audio/${questionWord.audio}`} controls>
-                Play
-              </audio>
-              <p>{questionWord.audio}</p>
-            </div>
-            <div className="border">
-              <ul className="flex space-x-1">
-                <pre>{JSON.stringify(answerWord, null, 1)}</pre>
-                {questionWord.english?.map((letter, i) => {
-                  //   const ref = useRef<(HTMLDivElement | null)[]>();
-                  //   inputRefs.current[i] = ref;
-                  return (
-                    <li className="" key={letter}>
-                      <input
-                        id={`input_${i}`}
-                        type="text"
-                        className="border-b bg-red-200 text-lg h-7 w-7 text-center"
-                        maxLength={1}
-                        value={answerWord[i]}
-                        onChange={(e) => handleLetter(e, i)}
-                        onClick={(e) => handleSelect(e, i)}
-                        onKeyUp={(e) => handleKeyUp(e)}
-                        // onKeyDown={(e) => handleKeyUp(e)}
-                        // onFocus={(e) => e.current.select()}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
+            {questionWord.audio && (
+              <div
+                className={`border w-full px-2 py-2 ${
+                  !audioLoaded && "hidden"
+                }`}
+              >
+                <h2 className="text-lg font-bold">Áudio</h2>
+                <audio
+                  src={`/audio/${questionWord.audio}`}
+                  controls
+                  onLoadedData={handleAudioLoad}
+                >
+                  Play
+                </audio>
+              </div>
+            )}
+            {isCorrect && (
+              <div className="border bg-green-200 ">
+                <p>Resposta</p>
+                <p className="text-xl font-bold uppercase">
+                  {questionWord.english}
+                </p>
+              </div>
+            )}
+            {!isCorrect && (
+              <div className="border w-full px-2 py-2">
+                <ul className="grid gap-2 grid-cols-8  ">
+                  {questionWord.english?.map((letter, i) => {
+                    return (
+                      <li className="" key={letter}>
+                        <input
+                          id={`input_${i}`}
+                          type="text"
+                          className="border-b bg-green-200 text-lg h-10 w-10 text-center"
+                          maxLength={1}
+                          value={answerWord[i]}
+                          onChange={(e) => handleLetter(e, i)}
+                          onClick={(e) => handleSelect(e, i)}
+                          onKeyUp={(e) => handleKeyUp(e)}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+            <div>
+              <button
+                onClick={nextQuestion}
+                className="bg-blue-700 px-2 py-2 hover:bg-blue-800 w-full text-white text-lg"
+              >
+                Próximo
+              </button>
             </div>
           </>
         )}
