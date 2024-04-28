@@ -1,18 +1,18 @@
 const words = [
   {
-    english: "catcatcatcat",
+    english: "cat",
     portuguese: "gato",
     question: "Inimigo do cachorro",
     audio: "cat.mp3",
   },
   {
-    english: "homehomehome",
+    english: "home",
     portuguese: "casa",
     question: "seu lar",
     audio: "home.mp3",
   },
   {
-    english: "dogdogdogdog",
+    english: "dog",
     portuguese: "cachorro",
     question: "Amigo do homem",
     audio: "dog.mp3",

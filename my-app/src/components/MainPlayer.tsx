@@ -154,7 +154,7 @@ const MainPlayer = () => {
               </div>
             )}
             {isCorrect && (
-              <div className="border bg-green-200 ">
+              <div className="border bg-green-200 w-full px-2 py-2">
                 <p>Resposta</p>
                 <p className="text-xl font-bold uppercase">
                   {questionWord.english}
