@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { separatorOfStrings } from "../helpers/utils";
 import { getRandomWord } from "../helpers/questions";
 import _ from "lodash";
@@ -17,6 +17,7 @@ const MainPlayer = () => {
   const [isCorrect, setIsCorrect] = useState<boolean>(false);
 
   const [audioLoaded, setAudioLoaded] = useState<any>(false);
+  const audioRef = useRef(null);
 
   const checkResult = () => {
     const isCorrect = _.isEqual(questionWord?.english, answerWord);
@@ -25,9 +26,9 @@ const MainPlayer = () => {
     }
   };
 
-  const handleAudioLoad = () => {
-    console.log("Audio loaded");
-    setAudioLoaded(true);
+  const handleAudioLoad = (e) => {
+    setAudioLoaded(() => true);
+    audioRef.current.play();
   };
 
   const handleKeyUp = (e: any) => {
@@ -109,8 +110,8 @@ const MainPlayer = () => {
         setTimeout(() => {
           elementClick?.focus();
           elementClick?.click();
-        }, 1000);
-      }, 500);
+        }, 200);
+      }, 100);
     });
   };
 
@@ -147,6 +148,7 @@ const MainPlayer = () => {
                 <audio
                   src={`/audio/${questionWord.audio}`}
                   controls
+                  ref={audioRef}
                   onLoadedData={handleAudioLoad}
                 >
                   Play
