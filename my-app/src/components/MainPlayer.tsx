@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { separatorOfStrings } from "../helpers/utils";
-import { getRandomWord } from "../helpers/questions";
+import { getRandomWord, words } from "../helpers/questions";
 import _ from "lodash";
 
 interface ISUserWord {
@@ -15,6 +15,7 @@ const MainPlayer = () => {
   const [answerWord, setAnswerWord] = useState<string[] | null>(null);
   const [currentLetterSpace, setCurrentLetterSpace] = useState<number>(0);
   const [isCorrect, setIsCorrect] = useState<boolean>(false);
+  const [gameMode, setGameMode] = useState<boolean>(true);
 
   const [audioLoaded, setAudioLoaded] = useState<any>(false);
   const audioRef = useRef(null);
@@ -125,77 +126,106 @@ const MainPlayer = () => {
 
   return (
     <>
-      <div className="px-5 py-2 space-y-5">
-        <h1>English Teacher</h1>
-        {/* <div>position: {currentLetterSpace}</div> */}
-        {questionWord && answerWord && (
-          <>
-            <div className="border w-full px-2 py-2">
-              <h2 className="text-lg font-bold">Pergunta</h2>
-              <p>{questionWord.question}</p>
-            </div>
-            <div className="border w-full px-2 py-2">
-              <h2 className="text-lg font-bold">Tradução</h2>
-              <p>{questionWord.portuguese}</p>
-            </div>
-            {questionWord.audio && (
-              <div
-                className={`border w-full px-2 py-2 ${
-                  !audioLoaded && "hidden"
-                }`}
-              >
-                <h2 className="text-lg font-bold">Áudio</h2>
-                <audio
-                  src={`/audio/${questionWord.audio}`}
-                  controls
-                  ref={audioRef}
-                  onLoadedData={handleAudioLoad}
-                >
-                  Play
-                </audio>
-              </div>
-            )}
-            {isCorrect && (
-              <div className="border bg-green-200 w-full px-2 py-2">
-                <p>Resposta</p>
-                <p className="text-xl font-bold uppercase">
-                  {questionWord.english}
-                </p>
-              </div>
-            )}
-            {!isCorrect && (
+      <button
+        className="w-full text-lg font-bold bg-gray-100  py-2"
+        onClick={() => setGameMode(!gameMode)}
+      >
+        Change mode
+      </button>
+      {gameMode ? (
+        <div className="px-5 py-2 space-y-5">
+          <h1>English Teacher</h1>
+          {/* <div>position: {currentLetterSpace}</div> */}
+          {questionWord && answerWord && (
+            <>
               <div className="border w-full px-2 py-2">
-                <ul className="grid gap-2 grid-cols-8 sm:grid-cols-12 md:flex md:flex-wrap  ">
-                  {questionWord.english?.map((letter, i) => {
-                    return (
-                      <li className="" key={`${letter}${i}`}>
-                        <input
-                          id={`input_${i}`}
-                          type="text"
-                          className="border-b bg-green-200 text-lg h-10 w-10 text-center"
-                          maxLength={1}
-                          value={answerWord[i]}
-                          onChange={(e) => handleLetter(e, i)}
-                          onClick={(e) => handleSelect(e, i)}
-                          onKeyUp={(e) => handleKeyUp(e)}
-                        />
-                      </li>
-                    );
-                  })}
-                </ul>
+                <h2 className="text-lg font-bold">Pergunta</h2>
+                <p>{questionWord.question}</p>
               </div>
-            )}
-            <div>
-              <button
-                onClick={nextQuestion}
-                className="bg-blue-700 px-2 py-2 hover:bg-blue-800 w-full text-white text-lg"
-              >
-                Próximo
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+              <div className="border w-full px-2 py-2">
+                <h2 className="text-lg font-bold">Tradução</h2>
+                <p>{questionWord.portuguese}</p>
+              </div>
+              {questionWord.audio && (
+                <div
+                  className={`border w-full px-2 py-2 ${
+                    !audioLoaded && "hidden"
+                  }`}
+                >
+                  <h2 className="text-lg font-bold">Áudio</h2>
+                  <audio
+                    src={`/audio/${questionWord.audio}`}
+                    controls
+                    ref={audioRef}
+                    onLoadedData={handleAudioLoad}
+                  >
+                    Play
+                  </audio>
+                </div>
+              )}
+              {isCorrect && (
+                <div className="border bg-green-200 w-full px-2 py-2">
+                  <p>Resposta</p>
+                  <p className="text-xl font-bold uppercase">
+                    {questionWord.english}
+                  </p>
+                </div>
+              )}
+              {!isCorrect && (
+                <div className="border w-full px-2 py-2">
+                  <ul className="grid gap-2 grid-cols-8 sm:grid-cols-12 md:flex md:flex-wrap  ">
+                    {questionWord.english?.map((letter, i) => {
+                      return (
+                        <li className="" key={`${letter}${i}`}>
+                          <input
+                            id={`input_${i}`}
+                            type="text"
+                            className="border-b bg-green-200 text-lg h-10 w-10 text-center"
+                            maxLength={1}
+                            value={answerWord[i]}
+                            onChange={(e) => handleLetter(e, i)}
+                            onClick={(e) => handleSelect(e, i)}
+                            onKeyUp={(e) => handleKeyUp(e)}
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+              <div>
+                <button
+                  onClick={nextQuestion}
+                  className="bg-blue-700 px-2 py-2 hover:bg-blue-800 w-full text-white text-lg"
+                >
+                  Próximo
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div>
+          <ul className="">
+            {words.map((item) => {
+              return (
+                <li className="border even:bg-gray-100">
+                  <div className="flex justify-between text-lg px-2">
+                    <div className="text-lg font-bold">{item.english}</div>
+                    <div>{item.portuguese}</div>
+                    {/* <div>
+                    {" "}
+                    <audio src={`/audio/${item.audio}`} controls>
+                      Play
+                    </audio>
+                  </div> */}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </>
   );
 };
